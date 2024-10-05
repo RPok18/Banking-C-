@@ -2,73 +2,99 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.Dynamic;
 using System.Runtime;
-
 namespace MoneyApp
 {
     // Money class to represent an amount of money with a currency
     public class Money
     {
-      public decimal Amount{gett;private Set;}
-      public string Currency{get;privateSet;}
-public Money(decimal amount, string currency)
+        public decimal Amount { get; private set; }
+        public string Currency { get; private set; }
+
+        public Money(decimal amount, string currency)
         {
+            if (string.IsNullOrEmpty(currency))
+            {
+                throw new ArgumentException("Currency cannot be null or empty");
+            }
+
             Amount = amount;
             Currency = currency;
         }
-//Method to get the sign of the amount (+1 for positive, -1 for negative, 0 for zero)
-public static class SignCalculator
-{
-    /// <summary>
-    /// Returns the sign of the given amount:
-    /// +1 for positive numbers
-    /// -1 for negative numbers
-    /// 0 for zero
-    /// </summary>
-    /// <param name="amount">The numeric value to check.</param>
-    /// <returns>1 if positive, -1 if negative, 0 if zero</returns>
-    public static int GetSign(double amount)
-    {
-        if (Math.Sign(amount) > 0)
-            return 1;
-        else if (Math.Sign(amount) < 0)
-            return -1;
-        else
-            return 0;
+
+        // Method to get the sign of the amount (+1 for positive, -1 for negative, 0 for zero)
+        public int GetSign()
+        {
+            return Amount > 0 ? 1 : Amount < 0 ? -1 : 0;
+        }
+
+        public override string ToString()
+        {
+            return $"{Amount} {Currency}";
+        }
     }
-    var money1 = new Money(100.50m, "USD");
-Console.WriteLine(money1.GetSign());     // Output: 1
-Console.WriteLine(money1.ToString());    // Output: 100.50 USD
 
-var money2 = new Money(-500m, "EUR");
-Console.WriteLine(money2.GetSign());     // Output: -1
-Console.WriteLine(money2.ToString());    // Output: -500 EUR
+    public class NumberGenerator
+    {
+        /// <summary>
+        /// Generates a decimal number from a string input formatted as "integerPart.fractionalPart".
+        /// </summary>
+        /// <param name="input">The input string to split and convert.</param>
+        /// <returns>A decimal number generated from the input string.</returns>
+        /// <exception cref="FormatException">Thrown when the input format is invalid.</exception>
+        public static decimal GenerateNumberFromString(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+            {
+                throw new ArgumentException("Input cannot be null or empty.");
+            }
 
-var money3 = new Money(0m, "RUB");
-Console.WriteLine(money3.GetSign());     // Output: 0
-Console.WriteLine(money3.ToString());    // Output: 0 RUB
+            // Split the input by '.'
+            var parts = input.Split('.');
 
+            if (parts.Length > 2)
+            {
+                throw new FormatException("Input format is invalid. Use 'integerPart.fractionalPart'.");
+            }
 
-try
-{
-    var invalidMoney = new Money(100m, null);
-}
-catch (ArgumentException ex)
-{
-    Console.WriteLine(ex.Message);       // Output: Currency cannot be null or empty
-}
-}
-ecimal value = amount;
-Console.WriteLine(value.ToString("C2"));
-using System;
+            // Parse the integer part
+            if (!decimal.TryParse(parts[0], out decimal integerPart))
+            {
+                throw new FormatException("Invalid integer part.");
+            }
 
-public class AmountManager
+            // Parse the fractional part if it exists
+            decimal fractionalPart = 0;
+            if (parts.Length == 2)
+            {
+                if (!decimal.TryParse("0." + parts[1], out fractionalPart))
+                {
+                    throw new FormatException("Invalid fractional part.");
+                }
+            }
+
+            // Combine both parts to generate the final number
+            return integerPart + fractionalPart;
+        }
+    }
+
+   public class AmountManager
 {
     private decimal amount;
 
     // Constructor to initialize the amount
     public AmountManager(decimal initialAmount)
     {
+        if (initialAmount < 0)
+        {
+            throw new ArgumentException("Initial amount cannot be negative.");
+        }
         amount = initialAmount;
+    }
+
+    // Property to get the current amount
+    public decimal Amount
+    {
+        get { return amount; }
     }
 
     // Method to set the sign of the amount
@@ -99,12 +125,6 @@ public class AmountManager
         amount = integerPart + (decimal)fractionalPart;
     }
 
-    // Method to set the currency value
-    public void SetCurrency(decimal newCurrency)
-    {
-        amount = newCurrency;
-    }
-
     // Method to get the current amount
     public decimal GetAmount()
     {
@@ -117,49 +137,64 @@ public class AmountManager
         Console.WriteLine($"Current Amount: {amount:C}");
     }
 }
-public class AmountManager
-{
-    private decimal amount;
 
-    // Constructor to initialize the amount
-    public AmountManager(decimal initialAmount)
-    {
-        amount = initialAmount;
-    }
 
-    // Method to get the sign of the amount
-    public int GetSign()
+    class Program
     {
-        return amount < 0 ? -1 : 1; // Return -1 if negative, 1 if positive
-    }
+        static void Main(string[] args)
+        {
+            try
+            {
+                string input = "123.45";
+                decimal result = NumberGenerator.GenerateNumberFromString(input);
+                Console.WriteLine($"Generated Number: {result}");  // Output: Generated Number: 123.45
 
-    // Method to get the integer part of the amount
-    public int GetIntegerPart()
-    {
-        return (int)Math.Truncate(Math.Abs(amount)); // Return absolute integer part
-    }
+                // Test with an invalid format
+                string invalidInput = "123.45.67";
+                result = NumberGenerator.GenerateNumberFromString(invalidInput);  // This will throw an exception
+            }
+            catch (FormatException ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
 
-    // Method to get the fractional part of the amount
-    public double GetFractionalPart()
-    {
-        return Math.Abs(amount) - Math.Truncate(Math.Abs(amount)); // Calculate fractional part
-    }
+            var money1 = new Money(100.50m, "USD");
+            Console.WriteLine(money1.GetSign());     // Output: 1
+            Console.WriteLine(money1.ToString());     // Output: 100.50 USD
 
-    // Method to set a new amount (for demonstration purposes)
-    public void SetAmount(decimal newAmount)
-    {
-        amount = newAmount;
-    }
+            var money2 = new Money(-500m, "EUR");
+            Console.WriteLine(money2.GetSign());     // Output: -1
+            Console.WriteLine(money2.ToString());     // Output: -500 EUR
 
-    // Method to get the current amount
-    public decimal GetAmount()
-    {
-        return amount;
-    }
+            var money3 = new Money(0m, "RUB");
+            Console.WriteLine(money3.GetSign());     // Output: 0
+            Console.WriteLine(money3.ToString());     // Output: 0 RUB
 
-    // Optional: Method to display the current value
-    public void DisplayAmount()
-    {
-        Console.WriteLine($"Current Amount: {amount:C}");
+            try
+            {
+                var invalidMoney = new Money(100m, null);
+                Console.WriteLine(invalidMoney.ToString());
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine(ex.Message);       // Output: Currency cannot be null or empty
+            }
+
+            var manager = new AmountManager(100.75m);
+            manager.DisplayAmount();                 // Display initial amount
+
+            manager.SetSign(-1);
+            manager.DisplayAmount();                 // Display updated amount with negative sign
+
+            manager.SetIntegerPart(50);
+            manager.DisplayAmount();                 // Display updated integer part
+
+            manager.SetFractionalPart(0.25);
+            manager.DisplayAmount();                 // Display updated fractional part
+        }
     }
 }
