@@ -175,14 +175,26 @@ namespace MoneyApp
             Console.WriteLine(money3.ToString());     // Output: 0 RUB
 
             try
-            {
-                var invalidMoney = new Money(100m, null);
-                Console.WriteLine(invalidMoney.ToString());
-            }
-            catch (ArgumentException ex)
-            {
-                Console.WriteLine(ex.Message);       // Output: Currency cannot be null or empty
-            }
+{
+    //  'USD' is a valid currency code. Replace with the appropriate currency if needed.
+    var invalidMoney = new Money(100m, "USD");
+
+    // Function to get a message, returns an empty string if the message is null.
+    string TryGetMessage(int id) => "0";
+
+    // Handle the possibility of a null return value.
+    string msg = TryGetMessage(42) ?? "Default message";
+
+    Console.WriteLine(invalidMoney.ToString());
+}
+catch (ArgumentNullException ex)
+{
+    Console.WriteLine($"ArgumentNullException: {ex.Message}");
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"An error occurred: {ex.Message}");
+}
 
             var manager = new AmountManager(100.75m);
             manager.DisplayAmount();                 // Display initial amount
